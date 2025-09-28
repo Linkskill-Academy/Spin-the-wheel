@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spin & Win – LinkSkill Academy</title>
+<meta name="theme-color" content="#0B235A">
+<style>
+  :root{
+    --navy:#0B235A;
+    --blue:#1675D1;
+    --orange:#FF8A00;
+    --cream:#FFF8F0;
+    --text:#0B235A;
+    --bg:#F5F7FB;
+    --success:#22c55e;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex; flex-direction:column;
+  }
+  header{
+    background:linear-gradient(90deg, var(--blue), var(--orange));
+    color:#fff;
+    padding:14px 16px;
+    display:flex; align-items:center; gap:12px; justify-content:space-between;
+  }
+  header .brand{
+    display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:0.2px;
+  }
+  header .brand span{opacity:.9; font-weight:600; font-size:.9rem}
+  .pill{background:rgba(255,255,255,.15); padding:6px 10px; border-radius:999px; font-size:.8rem}
+  main{flex:1; display:grid; place-items:center; padding:16px}
+  .app{
+    width:min(980px, 100%);
+    display:grid; grid-template-columns:1fr 360px; gap:18px;
+  }
+  @media (max-width:900px){ .app{grid-template-columns:1fr} }
+  .card{
+    background:#fff; border-radius:16px; box-shadow:0 6px 22px rgba(13, 23, 53, .08);
+    padding:16px;
+  }
+  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  canvas{ width:100%; max-width:520px; aspect-ratio:1/1; background:var(--cream); border-radius:50%; }
+  .pointer{
+    width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent;
+    border-bottom:26px solid var(--orange); margin-bottom:-6px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
+  }
+  .controls{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px }
+  .btn{
+    appearance:none; border:none; background:var(--orange); color:white; padding:12px 16px; border-radius:12px;
+    font-weight:700; cursor:pointer; letter-spacing:.2px; box-shadow:0 6px 16px rgba(255,138,0,.35);
+    transition:transform .06s ease;
+  }
+  .btn.secondary{ background:var(--blue); box-shadow:0 6px 16px rgba(22,117,209,.3); }
+  .btn.ghost{ background:#fff; color:var(--navy); border:2px solid #e9eef6; box-shadow:none }
+  .btn:active{ transform:translateY(1px) }
+  .lead-card h3{ margin:0 0 8px }
+  form .row{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  form .row-1{ display:grid; grid-template-columns:1fr; gap:10px }
+  @media (max-width:520px){ form .row{grid-template-columns:1fr} }
+  label{ font-size:.85rem; opacity:.85 }
+  input, select{
+    width:100%; padding:10px 12px; border:1px solid #d7dfeb; border-radius:10px; outline:0; font-size:1rem;
+    background:#fff;
+  }
+  .badge{
+    display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(11,35,90,.06);
+    font-size:.8rem; color:var(--navy); margin-right:6px; margin-bottom:6px;
+  }
+  .result{
+    margin-top:10px; font-weight:800; font-size:1.1rem;
+  }
+  .success{ color:var(--success) }
+  .hint{ font-size:.82rem; opacity:.75 }
+  footer{ text-align:center; font-size:.8rem; color:#5b6a86; padding:8px 16px }
+  .grid-logos{ display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+  .logo-pill{ background:#fff; border:1px dashed #e3e9f3; padding:8px 12px; border-radius:999px; font-weight:700 }
+  .hr{ height:1px; background:#eef2f8; margin:10px 0 }
+  .qr{
+    width:100%; height:120px; background:repeating-linear-gradient(45deg, #e8edf7 0 8px, #f6f8fc 8px 16px);
+    border-radius:10px; display:grid; place-items:center; color:#6a7aa2; font-size:.8rem
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div style="width:28px;height:28px;border-radius:8px;background:#fff;display:grid;place-items:center;color:var(--orange);font-weight:900;">🎡</div>
+      <div>
+        Spin & Win <span>— LinkSkill Academy</span>
+      </div>
+    </div>
+    <div class="pill">Expo Exclusive • Booth Play</div>
+  </header>
+
+  <main>
+    <div class="app">
+      <!-- Wheel -->
+      <section class="card">
+        <div class="wheel-wrap">
+          <div class="pointer" title="Pointer"></div>
+          <canvas id="wheel" width="600" height="600" aria-label="Prize Wheel"></canvas>
+          <div class="controls">
+            <button id="spinBtn" class="btn" disabled>Spin the Wheel</button>
+            <button id="resetBtn" class="btn ghost">Reset</button>
+          </div>
+          <div class="result" id="result">Fill the form to enable spinning.</div>
+          <div class="hint">Prizes: ₹50 • ₹100 • ₹200 • ₹300 • FREE Class</div>
+          <div class="hr"></div>
+          <div class="grid-logos">
+            <div class="logo-pill">LinkSkill Academy</div>
+            <div class="logo-pill">Target Point Media</div>
+            <div class="logo-pill">RobotWhiz Kids</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lead Form / Admin -->
+      <section class="card lead-card">
+        <h3>Enter Details to Play</h3>
+        <form id="leadForm" autocomplete="on">
+          <div class="row">
+            <div><label>Full Name</label><input name="name" required placeholder="e.g., Priya Raman"></div>
+            <div><label>Phone</label><input name="phone" type="tel" pattern="[0-9 +()-]{7,}" required placeholder="+91 …"></div>
+          </div>
+          <div class="row">
+            <div><label>Email</label><input name="email" type="email" required placeholder="name@email.com"></div>
+            <div><label>Area / City</label><input name="area" required placeholder="Salem / Coimbatore"></div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Interested Course</label>
+              <select name="course" required>
+                <option value="" selected disabled>Choose a course</option>
+                <option>Data Analytics (Power BI)</option>
+                <option>Digital Marketing</option>
+                <option>Python Basics</option>
+                <option>Project Management</option>
+                <option>RobotWhiz Kids (ChocoScratch)</option>
+                <option>RobotWhiz Kids (ButterBot)</option>
+                <option>RobotWhiz Kids (MintAI)</option>
+                <option>RobotWhiz Kids (CreamApp)</option>
+                <option>RobotWhiz Kids (CookiePy)</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label>Consent</label>
+              <select name="consent" required>
+                <option value="" selected disabled>Allow follow-up?</option>
+                <option>Yes</option>
+                <option>No</option>
+              </select>
+            </div>
+          </div>
+          <div class="row-1">
+            <button class="btn secondary" id="enableSpinBtn">Save & Enable Spin</button>
+          </div>
+        </form>
+
+        <div class="hr"></div>
+
+        <h3 style="margin-top:6px">Leads</h3>
+        <div class="hint">Saved locally on this device. Export at day end.</div>
+        <div class="row">
+          <button id="exportBtn" class="btn ghost">Export CSV</button>
+          <button id="clearBtn" class="btn ghost" style="border-color:#ffdddd;color:#c0392b">Clear All Leads</button>
+        </div>
+        <div class="qr">Tip: Place your payment/UPI QR here if you charge for trials.</div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    © LinkSkill Academy • Target Point Media • RobotWhiz Kids
+  </footer>
+
+<script>
+// ------- Prize Wheel Logic -------
+const wheel = document.getElementById('wheel');
+const ctx = wheel.getContext('2d');
+const segments = [
+  {label:"₹50 OFF", color:"#fff"},
+  {label:"₹100 OFF", color:"#ffe3cc"},
+  {label:"₹200 OFF", color:"#fff"},
+  {label:"₹300 OFF", color:"#ffe3cc"},
+  {label:"FREE Class", color:"#fff"}
+];
+let angleOffset = -Math.PI/2; // pointer at top
+let currentAngle = 0;
+let spinning = false;
+
+function drawWheel(){
+  const radius = wheel.width/2;
+  ctx.clearRect(0,0,wheel.width,wheel.height);
+  ctx.save();
+  ctx.translate(radius, radius);
+  const slice = 2*Math.PI / segments.length;
+
+  segments.forEach((seg, i)=>{
+    // slice
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,radius, i*slice + currentAngle, (i+1)*slice + currentAngle);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    // divider
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // label
+    ctx.save();
+    ctx.rotate(i*slice + slice/2 + currentAngle);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#0B235A';
+    ctx.font = 'bold 26px system-ui';
+    ctx.fillText(seg.label, radius-20, 10);
+    ctx.restore();
+  });
+
+  // center circle
+  ctx.beginPath();
+  ctx.arc(0,0,60,0,2*Math.PI);
+  ctx.fillStyle = '#1675D1';
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 20px system-ui';
+  ctx.textAlign='center';
+  ctx.fillText('SPIN', 0, 7);
+
+  ctx.restore();
+}
+drawWheel();
+
+function spinWheel(callback){
+  if(spinning) return;
+  spinning = true;
+  const extra = Math.random()*2*Math.PI; // random stop
+  const spins = 5; // full rotations
+  const target = currentAngle + spins*2*Math.PI + extra;
+  const duration = 4200;
+  const start = performance.now();
+
+  (function animate(now){
+    const t = Math.min(1, (now - start)/duration);
+    // easeOutCubic
+    const ease = 1 - Math.pow(1-t, 3);
+    currentAngle = (target - currentAngle)*ease + currentAngle;
+    drawWheel();
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      currentAngle = target % (2*Math.PI);
+      spinning = false;
+      // determine winning segment
+      const slice = 2*Math.PI / segments.length;
+      const index = (segments.length - Math.floor(((currentAngle + angleOffset) % (2*Math.PI)) / slice) - 1 + segments.length) % segments.length;
+      callback(segments[index].label);
+    }
+  })(performance.now());
+}
+
+// ------- Lead Capture -------
+const form = document.getElementById('leadForm');
+const enableSpinBtn = document.getElementById('enableSpinBtn');
+const spinBtn = document.getElementById('spinBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultEl = document.getElementById('result');
+const exportBtn = document.getElementById('exportBtn');
+const clearBtn = document.getElementById('clearBtn');
+
+function getLeads(){
+  try { return JSON.parse(localStorage.getItem('ls_leads')||'[]'); }
+  catch(e){ return []; }
+}
+function setLeads(arr){
+  localStorage.setItem('ls_leads', JSON.stringify(arr));
+}
+
+enableSpinBtn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(!form.reportValidity()) return;
+  spinBtn.disabled = false;
+  resultEl.textContent = "Ready! Tap 'Spin the Wheel'.";
+  // cache latest lead details (not yet a submission)
+  sessionStorage.setItem('pendingLead', JSON.stringify(Object.fromEntries(new FormData(form))));
+});
+
+spinBtn.addEventListener('click', ()=>{
+  const pending = sessionStorage.getItem('pendingLead');
+  if(!pending){ resultEl.textContent = "Please fill the form first."; return; }
+  spinBtn.disabled = true;
+  spinWheel((prize)=>{
+    resultEl.innerHTML = "🎉 Congratulations! You won: <b>"+ prize +"</b>";
+    resultEl.classList.add('success');
+    const lead = JSON.parse(pending);
+    lead.prize = prize;
+    lead.timestamp = new Date().toISOString();
+    const leads = getLeads();
+    leads.push(lead);
+    setLeads(leads);
+    sessionStorage.removeItem('pendingLead');
+    form.reset();
+  });
+});
+
+resetBtn.addEventListener('click', ()=>{
+  drawWheel();
+  resultEl.textContent = "Fill the form to enable spinning.";
+  resultEl.classList.remove('success');
+  spinBtn.disabled = true;
+});
+
+exportBtn.addEventListener('click', ()=>{
+  const leads = getLeads();
+  if(!leads.length){ alert("No leads yet."); return; }
+  const headers = ["name","phone","email","area","course","consent","prize","timestamp"];
+  const rows = [headers.join(",")];
+  leads.forEach(l=>{
+    const row = headers.map(h=>('"'+String(l[h]||'').replace(/"/g,'""')+'"')).join(",");
+    rows.push(row);
+  });
+  const csv = rows.join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = "spin_leads.csv"; a.click();
+  URL.revokeObjectURL(url);
+});
+
+clearBtn.addEventListener('click', ()=>{
+  if(confirm("Delete ALL saved leads on this device?")){
+    localStorage.removeItem('ls_leads');
+    alert("Leads cleared.");
+  }
+});
+</script>
+</body>
+</html>
