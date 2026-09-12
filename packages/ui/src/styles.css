@@ -1,0 +1,100 @@
+/* Shared design-system primitives used by the web app and the Chrome extension. */
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+}
+
+.btn-primary {
+  background: #16A34A;
+  color: white;
+  font-weight: 700;
+  border-radius: 0.9rem;
+  padding: 0.85rem 1.5rem;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+.btn-primary:hover { background: #15803d; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #F7FAF8;
+  color: #166534;
+  font-weight: 600;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.9rem;
+  padding: 0.85rem 1.5rem;
+}
+.btn-secondary:hover { background: #DCFCE7; }
+
+.input-field {
+  width: 100%;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  background: white;
+  color: #111827;
+}
+.input-field:focus {
+  outline: none;
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px #DCFCE7;
+}
+
+.progress-track {
+  background: #F0FDF4;
+  border-radius: 999px;
+  height: 0.6rem;
+  overflow: hidden;
+}
+.progress-fill {
+  background: #16A34A;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 999px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #E5E7EB;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #E5E7EB;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: #16A34A;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #16A34A;
+  margin-top: -0.3rem;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #E5E7EB;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: #16A34A;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #16A34A;
+  cursor: pointer;
+}

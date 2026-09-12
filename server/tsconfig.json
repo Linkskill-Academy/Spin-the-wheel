@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": false,
+    "baseUrl": ".",
+    "paths": {
+      "@mecrm/types": ["../packages/types/src/index.ts"],
+      "@mecrm/shared": ["../packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["src", "../packages/types/src", "../packages/shared/src"]
+}
