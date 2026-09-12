@@ -1,5 +1,7 @@
 # Manifestation & Execution CRM
 
+**v1.0.0** — see [CHANGELOG.md](./CHANGELOG.md) for release notes and [PHASE_1_STATUS.md](./PHASE_1_STATUS.md) for the backend's endpoint-by-endpoint status.
+
 A simple, bold, fast, positive, mobile-friendly personal operating system that turns **vision into daily execution** and **daily execution into measurable evidence**.
 
 It combines manifestation practices (gratitude, visualization, affirmations) with real business execution (CRM, college outreach, money tracking, goals, habits) — without becoming a complicated ERP.
@@ -32,6 +34,8 @@ It combines manifestation practices (gratitude, visualization, affirmations) wit
 | Student Mode vs Founder Mode | ✅ Done |
 | Onboarding → auto-builds goal chain | ✅ Done |
 | Seed data + demo account | ✅ Done |
+| Settings (name, currency, daily outreach target, reminders) | ✅ Done |
+| Data export (full JSON, CSV for leads/money/evidence) | ✅ Done |
 | Chrome Extension (Manifest V3: popup + new-tab override) | ✅ Done, tested in Chromium |
 | Android project (Capacitor, wraps the same web app) | ✅ Scaffolded & verified configuring correctly |
 | Signed/installable APK file | ⚠️ **Not built in this environment** — see note below |
@@ -77,19 +81,47 @@ The web app, the Chrome extension, and (by wrapping the web app directly) the An
 
 ## 1. Local setup (web app + API)
 
-Requires Node.js 18+.
+### Requirements
+
+- Node.js 18+ and npm 10+
+- No database server, no Docker, no external services required — SQLite is a local file.
+
+### Install
 
 ```bash
 # from the repo root
 npm install
+```
 
-# configure the server (optional — sensible defaults exist)
+### Environment variables
+
+Copy `server/.env.example` to `server/.env` and adjust if needed — every value has a safe default for local development:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `4000` | API server port |
+| `JWT_SECRET` | (dev placeholder) | Signs auth tokens — **set a real random value before deploying anywhere** |
+| `DATABASE_PATH` | `./data/mecrm.sqlite` | SQLite file location, relative to `server/` |
+| `CORS_ORIGIN` | `*` (dev) | Comma-separated allowed origins in production |
+
+```bash
 cp server/.env.example server/.env
-# edit server/.env if you want to change the JWT secret, port, or CORS origin
+```
 
+### Database migrations
+
+Migrations are plain `.sql` files in `server/src/migrations/`, tracked in a `schema_migrations` table. **They run automatically** every time the server starts (`npm run dev` or `npm start`) — there is no separate "migrate" command to remember. To add a new migration, add a new numbered `.sql` file; it will apply on the next server start.
+
+### Seed
+
+```bash
 # create the SQLite database + demo account with realistic sample data
 npm run seed
+```
 
+### Dev run
+
+```bash
 # run the API (http://localhost:4000) and the web app (http://localhost:5173) together
 npm run dev
 ```
@@ -114,6 +146,19 @@ npm run build:web      # -> apps/web/dist (any static host / reverse-proxied beh
 ```
 
 Set real environment variables in production — **never** ship the default `JWT_SECRET`.
+
+### Smoke test
+
+A real-HTTP integration test that exercises every API route, including cross-user data isolation and malformed-input handling:
+
+```bash
+# terminal 1
+npm run dev:server
+# terminal 2
+cd server && npm run test:smoke
+```
+
+Prints `PASS`/`FAIL` per check and `BACKEND SMOKE TEST PASSED` only if everything passed (53/53 as of v1.0.0). See [PHASE_1_STATUS.md](./PHASE_1_STATUS.md) for full details.
 
 ---
 
