@@ -84,8 +84,8 @@ export default function Layout() {
         </NavLink>
       </aside>
 
-      <div className="flex-1 flex flex-col min-h-screen">
-        <main className="flex-1 pb-24 md:pb-8">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+        <main className="flex-1 min-w-0 pb-24 md:pb-8">
           <Outlet />
         </main>
 
