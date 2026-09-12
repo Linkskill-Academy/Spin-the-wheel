@@ -1,5 +1,12 @@
 const TOKEN_KEY = 'mecrm_token';
 
+// Relative '/api' works for the browser app (same-origin dev proxy or same-origin prod
+// deployment) and the Chrome extension has its own client. The Android app is served from
+// a Capacitor webview origin (https://localhost) that cannot reach '/api' on the dev
+// machine, so mobile builds set VITE_API_URL to the backend's LAN address at build time
+// (see apps/web/.env.mobile and apps/mobile/package.json's build:web script).
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -25,7 +32,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`/api${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE_URL}/api${path}`, { ...options, headers });
 
   if (res.status === 204) return undefined as unknown as T;
 

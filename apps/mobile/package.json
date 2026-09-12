@@ -3,9 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "build:web": "npm run build --workspace=apps/web -- --mode mobile",
     "sync": "node scripts/copy-web-build.js && npx cap sync android",
     "open:android": "npx cap open android",
-    "build:apk": "npm run sync && cd android && ./gradlew assembleDebug"
+    "build:apk": "npm run build:web && npm run sync && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
