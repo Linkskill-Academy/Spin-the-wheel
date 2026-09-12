@@ -17,5 +17,5 @@
       "@mecrm/shared": ["../packages/shared/src/index.ts"]
     }
   },
-  "include": ["src", "../packages/types/src", "../packages/shared/src"]
+  "include": ["src", "scripts", "../packages/types/src", "../packages/shared/src"]
 }

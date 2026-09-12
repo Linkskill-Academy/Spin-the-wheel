@@ -6,6 +6,8 @@ build/
 .env.local
 server/data/*.sqlite
 server/data/*.sqlite-journal
+server/data/*.sqlite-wal
+server/data/*.sqlite-shm
 .DS_Store
 apps/mobile/www/
 apps/mobile/ios/
