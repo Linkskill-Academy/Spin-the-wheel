@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Plus, X, Trash2, Search } from 'lucide-react';
 import type { Lead, LeadStatus, OpportunityType } from '@mecrm/types';
-import { formatCurrencyINR } from '@mecrm/shared';
 import { api } from '../lib/api';
+import { useCurrencyFormatter } from '../lib/currency';
 import { Card, SectionTitle, Pill } from '@mecrm/ui';
 
 const STATUSES: LeadStatus[] = ['New Lead', 'Contacted', 'Conversation', 'Follow-up', 'Proposal', 'Won', 'Lost'];
@@ -17,6 +17,7 @@ interface Stats {
 }
 
 export default function Crm() {
+  const format = useCurrencyFormatter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'All'>('All');
@@ -28,8 +29,8 @@ export default function Crm() {
     const params = new URLSearchParams();
     if (statusFilter !== 'All') params.set('status', statusFilter);
     if (search) params.set('search', search);
-    api.get<{ leads: Lead[] }>(`/leads?${params.toString()}`).then((res) => setLeads(res.leads));
-    api.get<{ stats: Stats }>('/leads/stats').then((res) => setStats(res.stats));
+    api.get<{ leads: Lead[] }>(`/leads?${params.toString()}`).then((res) => setLeads(res.leads)).catch(() => {});
+    api.get<{ stats: Stats }>('/leads/stats').then((res) => setStats(res.stats)).catch(() => {});
   }
   useEffect(load, [statusFilter, search]);
 
@@ -57,9 +58,9 @@ export default function Crm() {
 
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <Stat label="Pipeline Value" value={formatCurrencyINR(stats.totalPipelineValue)} />
-          <Stat label="Potential" value={formatCurrencyINR(stats.potentialRevenue)} />
-          <Stat label="Won" value={formatCurrencyINR(stats.wonRevenue)} tone="primary" />
+          <Stat label="Pipeline Value" value={format(stats.totalPipelineValue)} />
+          <Stat label="Potential" value={format(stats.potentialRevenue)} />
+          <Stat label="Won" value={format(stats.wonRevenue)} tone="primary" />
           <Stat label="Follow-ups Today" value={String(stats.followupsToday)} />
           <Stat label="Overdue" value={String(stats.overdueFollowups)} tone={stats.overdueFollowups > 0 ? 'warn' : undefined} />
         </div>
@@ -90,7 +91,7 @@ export default function Crm() {
                 <p className="text-sm text-muted">
                   {lead.organisation} {lead.role && `· ${lead.role}`}
                 </p>
-                <p className="text-sm font-semibold text-primary mt-1">{formatCurrencyINR(lead.estimatedValue)}</p>
+                <p className="text-sm font-semibold text-primary mt-1">{format(lead.estimatedValue)}</p>
                 {lead.nextFollowup && <p className="text-xs text-muted mt-1">Next follow-up: {lead.nextFollowup}</p>}
               </div>
               <button onClick={() => remove(lead.id)} className="text-muted hover:text-red-600">
@@ -110,7 +111,9 @@ export default function Crm() {
             </select>
           </Card>
         ))}
-        {leads.length === 0 && <Card className="text-center text-muted">No leads yet. Add your first one.</Card>}
+        {leads.length === 0 && (
+          <Card className="text-center text-muted">Your pipeline starts with the first conversation.</Card>
+        )}
       </div>
 
       {(showForm || editing) && (

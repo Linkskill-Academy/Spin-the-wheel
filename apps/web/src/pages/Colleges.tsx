@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Plus, X, Trash2, Search } from 'lucide-react';
 import type { CollegeOutreach, CollegeStatus } from '@mecrm/types';
-import { formatCurrencyINR, progressPercent } from '@mecrm/shared';
+import { progressPercent } from '@mecrm/shared';
 import { api } from '../lib/api';
+import { useCurrencyFormatter } from '../lib/currency';
 import { Card, ProgressBar, Pill } from '@mecrm/ui';
 
 const STATUSES: CollegeStatus[] = ['To Contact', 'Contacted', 'Interested', 'Meeting', 'Proposal', 'Negotiation', 'Won', 'Not Now'];
 const today = new Date().toISOString().slice(0, 10);
 
 export default function Colleges() {
+  const format = useCurrencyFormatter();
   const [colleges, setColleges] = useState<CollegeOutreach[]>([]);
   const [stats, setStats] = useState<{ contactedToday: number; dailyTarget: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<CollegeStatus | 'All'>('All');
@@ -20,8 +22,11 @@ export default function Colleges() {
     const params = new URLSearchParams();
     if (statusFilter !== 'All') params.set('status', statusFilter);
     if (search) params.set('search', search);
-    api.get<{ colleges: CollegeOutreach[] }>(`/colleges?${params.toString()}`).then((res) => setColleges(res.colleges));
-    api.get<{ stats: { contactedToday: number; dailyTarget: number } }>('/colleges/stats').then((res) => setStats(res.stats));
+    api.get<{ colleges: CollegeOutreach[] }>(`/colleges?${params.toString()}`).then((res) => setColleges(res.colleges)).catch(() => {});
+    api
+      .get<{ stats: { contactedToday: number; dailyTarget: number } }>('/colleges/stats')
+      .then((res) => setStats(res.stats))
+      .catch(() => {});
   }
   useEffect(load, [statusFilter, search]);
 
@@ -82,7 +87,7 @@ export default function Colleges() {
                 <p className="text-sm text-muted">
                   {c.city} {c.contactPerson && `· ${c.contactPerson}`}
                 </p>
-                {c.estimatedValue > 0 && <p className="text-sm font-semibold text-primary mt-1">{formatCurrencyINR(c.estimatedValue)}</p>}
+                {c.estimatedValue > 0 && <p className="text-sm font-semibold text-primary mt-1">{format(c.estimatedValue)}</p>}
                 {c.nextFollowup && <p className="text-xs text-muted mt-1">Next follow-up: {c.nextFollowup}</p>}
               </div>
               <button onClick={() => remove(c.id)} className="text-muted hover:text-red-600">
@@ -96,7 +101,9 @@ export default function Colleges() {
             )}
           </Card>
         ))}
-        {colleges.length === 0 && <Card className="text-center text-muted">No colleges yet. Add your first target.</Card>}
+        {colleges.length === 0 && (
+          <Card className="text-center text-muted">Your outreach list starts with the first college you add.</Card>
+        )}
       </div>
 
       {(showForm || editing) && (

@@ -24,10 +24,13 @@ export default function Habits() {
   const days = lastSevenDays();
 
   function load() {
-    api.get<{ habits: Habit[]; logs: typeof logs }>('/habits').then((res) => {
-      setHabits(res.habits);
-      setLogs(res.logs);
-    });
+    api
+      .get<{ habits: Habit[]; logs: typeof logs }>('/habits')
+      .then((res) => {
+        setHabits(res.habits);
+        setLogs(res.logs);
+      })
+      .catch(() => {});
   }
   useEffect(load, []);
 
@@ -110,7 +113,9 @@ export default function Habits() {
             </div>
           ))}
         </div>
-        {habits.length === 0 && <p className="text-sm text-muted">Add your first habit above.</p>}
+        {habits.length === 0 && (
+          <p className="text-sm text-muted">Add one habit that supports the person you're becoming.</p>
+        )}
       </Card>
     </div>
   );

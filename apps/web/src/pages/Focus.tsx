@@ -52,7 +52,7 @@ function FocusSession() {
   const [running, setRunning] = useState(false);
 
   function load() {
-    api.get<{ tasks: Task[] }>('/tasks').then((res) => setTasks(res.tasks));
+    api.get<{ tasks: Task[] }>('/tasks').then((res) => setTasks(res.tasks)).catch(() => {});
   }
   useEffect(load, []);
 

@@ -41,10 +41,13 @@ export default function Night() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get<{ night: (NightReview & { id: number }) | null }>(`/night/${todayStr()}`).then((res) => {
-      if (res.night) setForm(res.night);
-      setLoaded(true);
-    });
+    api
+      .get<{ night: (NightReview & { id: number }) | null }>(`/night/${todayStr()}`)
+      .then((res) => {
+        if (res.night) setForm(res.night);
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {

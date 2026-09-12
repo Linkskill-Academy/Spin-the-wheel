@@ -16,6 +16,7 @@ import { evidenceRouter } from './routes/evidence';
 import { tasksRouter } from './routes/tasks';
 import { reviewsRouter } from './routes/reviews';
 import { dashboardRouter } from './routes/dashboard';
+import { exportRouter } from './routes/export';
 
 runMigrations();
 
@@ -39,6 +40,7 @@ app.use('/api/evidence', evidenceRouter);
 app.use('/api/tasks', tasksRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/export', exportRouter);
 
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 

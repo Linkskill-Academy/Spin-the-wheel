@@ -4,6 +4,9 @@
   "private": true,
   "main": "src/index.tsx",
   "types": "src/index.tsx",
+  "dependencies": {
+    "@mecrm/shared": "*"
+  },
   "peerDependencies": {
     "react": "^18.3.1"
   }

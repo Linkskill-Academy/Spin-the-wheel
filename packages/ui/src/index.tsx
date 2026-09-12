@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { formatGoalValue, goalGap, nextMilestoneValue } from '@mecrm/shared';
 
 export function ProgressBar({ percent }: { percent: number }) {
   const clamped = Math.min(100, Math.max(0, percent));
@@ -50,6 +51,40 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg font-bold text-ink">{children}</h2>
       {action}
+    </div>
+  );
+}
+
+/** TARGET / CURRENT / GAP / NEXT MILESTONE — the standard way every goal shows its status. */
+export function GoalMetrics({
+  current,
+  target,
+  unit,
+  currency = 'INR',
+}: {
+  current: number;
+  target: number;
+  unit: string;
+  currency?: string;
+}) {
+  const gap = goalGap(current, target);
+  const milestone = nextMilestoneValue(current, target);
+  const fmt = (v: number) => formatGoalValue(v, unit, currency);
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-sm">
+      <GoalMetric label="Target" value={fmt(target)} />
+      <GoalMetric label="Current" value={fmt(current)} />
+      <GoalMetric label="Gap" value={fmt(gap)} />
+      <GoalMetric label="Next Milestone" value={fmt(milestone)} />
+    </div>
+  );
+}
+
+function GoalMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-softbg rounded-xl p-2.5">
+      <p className="text-[10px] font-semibold text-muted uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-bold text-ink mt-0.5">{value}</p>
     </div>
   );
 }

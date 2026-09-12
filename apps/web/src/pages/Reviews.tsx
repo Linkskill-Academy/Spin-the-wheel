@@ -108,9 +108,12 @@ function WeeklyReview() {
   const ws = weekStart();
 
   useEffect(() => {
-    api.get<{ review: { data: Partial<WeeklyData> } | null }>(`/reviews/weekly/${ws}`).then((res) => {
-      if (res.review) setData({ ...emptyWeekly, ...res.review.data });
-    });
+    api
+      .get<{ review: { data: Partial<WeeklyData> } | null }>(`/reviews/weekly/${ws}`)
+      .then((res) => {
+        if (res.review) setData({ ...emptyWeekly, ...res.review.data });
+      })
+      .catch(() => {});
   }, [ws]);
 
   function set<K extends keyof WeeklyData>(key: K, value: WeeklyData[K]) {
@@ -181,10 +184,16 @@ function MonthlyReview() {
   const m = monthStr();
 
   useEffect(() => {
-    api.get<{ review: { data: Partial<MonthlyData> } | null }>(`/reviews/monthly/${m}`).then((res) => {
-      if (res.review) setData({ ...emptyMonthly, ...res.review.data });
-    });
-    api.get<{ trend: Record<string, unknown>[] }>('/reviews/monthly-trend').then((res) => setTrend(res.trend));
+    api
+      .get<{ review: { data: Partial<MonthlyData> } | null }>(`/reviews/monthly/${m}`)
+      .then((res) => {
+        if (res.review) setData({ ...emptyMonthly, ...res.review.data });
+      })
+      .catch(() => {});
+    api
+      .get<{ trend: Record<string, unknown>[] }>('/reviews/monthly-trend')
+      .then((res) => setTrend(res.trend))
+      .catch(() => {});
   }, [m]);
 
   function set<K extends keyof MonthlyData>(key: K, value: MonthlyData[K]) {

@@ -55,7 +55,10 @@ collegeRouter.get('/stats', (req: AuthedRequest, res) => {
   const contactedToday = db
     .prepare("SELECT COUNT(*) as c FROM college_outreach WHERE user_id = ? AND last_contacted = ?")
     .get(req.userId, today) as { c: number };
-  res.json({ stats: { contactedToday: contactedToday.c, dailyTarget: 10 } });
+  const user = db.prepare('SELECT daily_outreach_target FROM users WHERE id = ?').get(req.userId) as
+    | { daily_outreach_target: number }
+    | undefined;
+  res.json({ stats: { contactedToday: contactedToday.c, dailyTarget: user?.daily_outreach_target || 10 } });
 });
 
 const schema = z.object({

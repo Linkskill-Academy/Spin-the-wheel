@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Flame, Sunrise, Moon as MoonIcon, Zap } from 'lucide-react';
 import type { DashboardSummary } from '@mecrm/types';
-import { formatCurrencyINR, progressPercent } from '@mecrm/shared';
+import { goalGap, progressPercent } from '@mecrm/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Card, ProgressBar, ScoreCircle, SectionTitle, Pill } from '@mecrm/ui';
+import { useCurrencyFormatter } from '../lib/currency';
+import { Card, GoalMetrics, ProgressBar, ScoreCircle, SectionTitle, Pill } from '@mecrm/ui';
 
 function timeGreeting() {
   const h = new Date().getHours();
@@ -17,11 +18,27 @@ function timeGreeting() {
 export default function Dashboard() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardSummary | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const isStudent = user?.accountMode === 'student';
 
-  useEffect(() => {
-    api.get<DashboardSummary>('/dashboard').then(setData);
-  }, []);
+  function load() {
+    setLoadError(false);
+    api.get<DashboardSummary>('/dashboard').then(setData).catch(() => setLoadError(true));
+  }
+
+  useEffect(load, []);
+
+  if (loadError) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-10 text-center">
+        <p className="font-bold text-ink mb-2">Couldn't load today's view</p>
+        <p className="text-sm text-muted mb-4">Check your connection and try again.</p>
+        <button onClick={load} className="btn-primary">
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (!data) {
     return <div className="p-6 text-muted">Loading your day...</div>;
@@ -81,6 +98,12 @@ export default function Dashboard() {
               </div>
               <ProgressBar percent={progressPercent(topGoal.progressCurrent, topGoal.progressTarget)} />
             </div>
+            <GoalMetrics
+              current={topGoal.progressCurrent}
+              target={topGoal.progressTarget}
+              unit={topGoal.unit}
+              currency={user?.currency}
+            />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-sm">
               <MiniTarget label="90-Day" value={topGoal.target90d} />
               <MiniTarget label="30-Day" value={topGoal.target30d} />
@@ -89,7 +112,7 @@ export default function Dashboard() {
             </div>
           </div>
         ) : (
-          <p className="text-muted">No goals yet. Add your first vision on the Goals page.</p>
+          <p className="text-muted">Start with the life or result you want to build — add it on the Goals page.</p>
         )}
       </Card>
 
@@ -171,17 +194,18 @@ function MiniTarget({ label, value }: { label: string; value: string }) {
 }
 
 function MoneyStat({ label, target, current }: { label: string; target: number; current: number }) {
+  const format = useCurrencyFormatter();
   const percent = progressPercent(current, target);
-  const gap = Math.max(target - current, 0);
+  const gap = goalGap(current, target);
   return (
     <div className="bg-softbg rounded-xl p-4">
       <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">{label}</p>
       <div className="flex items-baseline justify-between mb-2">
-        <span className="text-xl font-extrabold text-ink">{formatCurrencyINR(current)}</span>
-        <span className="text-xs text-muted">of {formatCurrencyINR(target)}</span>
+        <span className="text-xl font-extrabold text-ink">{format(current)}</span>
+        <span className="text-xs text-muted">of {format(target)}</span>
       </div>
       <ProgressBar percent={percent} />
-      <p className="text-xs text-muted mt-2">Gap: {formatCurrencyINR(gap)}</p>
+      <p className="text-xs text-muted mt-2">Gap: {format(gap)}</p>
     </div>
   );
 }

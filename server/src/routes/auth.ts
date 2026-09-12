@@ -20,6 +20,10 @@ function toUserDto(row: any) {
     name: row.name,
     accountMode: row.account_mode,
     onboardingCompleted: !!row.onboarding_completed,
+    currency: row.currency,
+    dailyOutreachTarget: row.daily_outreach_target,
+    morningReminderEnabled: !!row.morning_reminder_enabled,
+    nightReviewReminderEnabled: !!row.night_review_reminder_enabled,
     createdAt: row.created_at,
   };
 }
@@ -81,16 +85,28 @@ authRouter.patch('/me', requireAuth, (req: AuthedRequest, res) => {
   const schema = z.object({
     name: z.string().min(1).optional(),
     accountMode: z.enum(['founder', 'student']).optional(),
+    currency: z.enum(['INR', 'USD']).optional(),
+    dailyOutreachTarget: z.number().int().min(1).max(100).optional(),
+    morningReminderEnabled: z.boolean().optional(),
+    nightReviewReminderEnabled: z.boolean().optional(),
   });
   const parsed = schema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid input' });
+  const d = parsed.data;
 
-  if (parsed.data.name) {
-    db.prepare('UPDATE users SET name = ? WHERE id = ?').run(parsed.data.name, req.userId);
-  }
-  if (parsed.data.accountMode) {
-    db.prepare('UPDATE users SET account_mode = ? WHERE id = ?').run(parsed.data.accountMode, req.userId);
-  }
+  if (d.name !== undefined) db.prepare('UPDATE users SET name = ? WHERE id = ?').run(d.name, req.userId);
+  if (d.accountMode !== undefined) db.prepare('UPDATE users SET account_mode = ? WHERE id = ?').run(d.accountMode, req.userId);
+  if (d.currency !== undefined) db.prepare('UPDATE users SET currency = ? WHERE id = ?').run(d.currency, req.userId);
+  if (d.dailyOutreachTarget !== undefined)
+    db.prepare('UPDATE users SET daily_outreach_target = ? WHERE id = ?').run(d.dailyOutreachTarget, req.userId);
+  if (d.morningReminderEnabled !== undefined)
+    db.prepare('UPDATE users SET morning_reminder_enabled = ? WHERE id = ?').run(d.morningReminderEnabled ? 1 : 0, req.userId);
+  if (d.nightReviewReminderEnabled !== undefined)
+    db.prepare('UPDATE users SET night_review_reminder_enabled = ? WHERE id = ?').run(
+      d.nightReviewReminderEnabled ? 1 : 0,
+      req.userId
+    );
+
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.userId);
   res.json({ user: toUserDto(user) });
 });

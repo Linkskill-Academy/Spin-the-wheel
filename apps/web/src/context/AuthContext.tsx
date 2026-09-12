@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { User, AuthResponse } from '@mecrm/types';
-import { api, getToken, setToken } from '../lib/api';
+import { api, ApiError, getToken, setToken } from '../lib/api';
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  /** True when a token exists but the server could not be reached (not an auth failure). */
+  connectionError: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string, accountMode: 'founder' | 'student') => Promise<void>;
   logout: () => void;
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
 
   async function refreshUser() {
     if (!getToken()) {
@@ -26,9 +29,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.get<{ user: User }>('/auth/me');
       setUser(res.user);
-    } catch {
-      setToken(null);
-      setUser(null);
+      setConnectionError(false);
+    } catch (err) {
+      // Only a real auth failure (invalid/expired token) should sign the user out.
+      // A network error or a temporarily unreachable server must not wipe a valid session.
+      if (err instanceof ApiError && err.status === 401) {
+        setToken(null);
+        setUser(null);
+        setConnectionError(false);
+      } else {
+        setConnectionError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -56,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, connectionError, login, signup, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

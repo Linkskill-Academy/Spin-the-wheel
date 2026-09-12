@@ -2,12 +2,18 @@
 
 export type AccountMode = 'founder' | 'student';
 
+export type CurrencyCode = 'INR' | 'USD';
+
 export interface User {
   id: number;
   email: string;
   name: string;
   accountMode: AccountMode;
   onboardingCompleted: boolean;
+  currency: CurrencyCode;
+  dailyOutreachTarget: number;
+  morningReminderEnabled: boolean;
+  nightReviewReminderEnabled: boolean;
   createdAt: string;
 }
 

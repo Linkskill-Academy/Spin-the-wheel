@@ -125,6 +125,29 @@ async function main() {
     ok('POST /api/onboarding -> 200', status === 200);
   }
 
+  // ---------- SETTINGS (PATCH /api/auth/me) ----------
+  {
+    const { status, json } = await req('/api/auth/me', {
+      method: 'PATCH',
+      token: tokenA,
+      body: { currency: 'USD', dailyOutreachTarget: 15, morningReminderEnabled: false, nightReviewReminderEnabled: true },
+    });
+    ok(
+      'PATCH /api/auth/me updates settings',
+      status === 200 &&
+        json.user?.currency === 'USD' &&
+        json.user?.dailyOutreachTarget === 15 &&
+        json.user?.morningReminderEnabled === false &&
+        json.user?.nightReviewReminderEnabled === true
+    );
+  }
+  {
+    const { status, json } = await req('/api/auth/me', { method: 'PATCH', token: tokenA, body: { currency: 'JPY' } });
+    ok('PATCH /api/auth/me rejects an unsupported currency -> 400', status === 400 && !!json.error);
+  }
+  // Restore INR for the rest of the run (keeps later assertions currency-agnostic where it matters).
+  await req('/api/auth/me', { method: 'PATCH', token: tokenA, body: { currency: 'INR', dailyOutreachTarget: 10 } });
+
   // ---------- GOALS ----------
   let goalId: number | undefined;
   {
@@ -393,6 +416,31 @@ async function main() {
   {
     const { status } = await req('/api/health');
     ok('Server still responds to /api/health after malformed requests', status === 200);
+  }
+
+  // ---------- DATA EXPORT ----------
+  {
+    const { status, json } = await req('/api/export/json', { token: tokenA });
+    ok(
+      'GET /api/export/json returns a full data dump for the signed-in user only',
+      status === 200 && Array.isArray(json.goals) && json.goals.some((g: any) => g.id === goalId) && json.user?.email === userAEmail
+    );
+  }
+  {
+    const res = await fetch(`${BASE}/api/export/csv/leads`, { headers: { Authorization: `Bearer ${tokenA}` } });
+    const text = await res.text();
+    ok(
+      'GET /api/export/csv/leads returns CSV with a header row and the smoke-test lead',
+      res.status === 200 && text.startsWith('id,') && text.includes('Smoke Lead')
+    );
+  }
+  {
+    const { status } = await req('/api/export/csv/not-a-real-resource', { token: tokenA });
+    ok('GET /api/export/csv/:resource with an unknown resource -> 400 (no crash)', status === 400);
+  }
+  {
+    const { status } = await req('/api/export/json');
+    ok('GET /api/export/json with no token -> 401', status === 401);
   }
 
   // ---------- SUMMARY ----------

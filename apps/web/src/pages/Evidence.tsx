@@ -13,7 +13,7 @@ export default function Evidence() {
   const [filter, setFilter] = useState<EvidenceCategory | 'All'>('All');
 
   function load() {
-    api.get<{ evidence: EvidenceLog[] }>('/evidence').then((res) => setItems(res.evidence));
+    api.get<{ evidence: EvidenceLog[] }>('/evidence').then((res) => setItems(res.evidence)).catch(() => {});
   }
   useEffect(load, []);
 
@@ -105,7 +105,9 @@ export default function Evidence() {
               </button>
             </div>
           ))}
-          {filtered.length === 0 && <p className="text-sm text-muted">No evidence logged yet. Start today.</p>}
+          {filtered.length === 0 && (
+            <p className="text-sm text-muted">Complete one meaningful action today and record it here.</p>
+          )}
         </div>
       </Card>
     </div>

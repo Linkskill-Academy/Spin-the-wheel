@@ -1,0 +1,4 @@
+ALTER TABLE users ADD COLUMN currency TEXT NOT NULL DEFAULT 'INR';
+ALTER TABLE users ADD COLUMN daily_outreach_target INTEGER NOT NULL DEFAULT 10;
+ALTER TABLE users ADD COLUMN morning_reminder_enabled INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE users ADD COLUMN night_review_reminder_enabled INTEGER NOT NULL DEFAULT 1;

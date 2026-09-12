@@ -57,10 +57,13 @@ export default function Morning() {
   const [timerRunning, setTimerRunning] = useState(false);
 
   useEffect(() => {
-    api.get<{ morning: (MorningRoutine & { id: number }) | null }>(`/morning/${todayStr()}`).then((res) => {
-      if (res.morning) setForm(res.morning);
-      setLoaded(true);
-    });
+    api
+      .get<{ morning: (MorningRoutine & { id: number }) | null }>(`/morning/${todayStr()}`)
+      .then((res) => {
+        if (res.morning) setForm(res.morning);
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
 
   useEffect(() => {

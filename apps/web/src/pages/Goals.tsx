@@ -3,7 +3,8 @@ import { Plus, X, Trash2 } from 'lucide-react';
 import type { Goal, GoalCategory } from '@mecrm/types';
 import { progressPercent } from '@mecrm/shared';
 import { api } from '../lib/api';
-import { Card, ProgressBar, SectionTitle, Pill } from '@mecrm/ui';
+import { useAuth } from '../context/AuthContext';
+import { Card, GoalMetrics, ProgressBar, SectionTitle, Pill } from '@mecrm/ui';
 
 const CATEGORIES: GoalCategory[] = [
   'Business',
@@ -18,12 +19,13 @@ const CATEGORIES: GoalCategory[] = [
 ];
 
 export default function Goals() {
+  const { user } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<GoalCategory | 'All'>('All');
 
   function load() {
-    api.get<{ goals: Goal[] }>('/goals').then((res) => setGoals(res.goals));
+    api.get<{ goals: Goal[] }>('/goals').then((res) => setGoals(res.goals)).catch(() => {});
   }
   useEffect(load, []);
 
@@ -73,7 +75,9 @@ export default function Goals() {
         ))}
       </div>
 
-      {filtered.length === 0 && <Card className="text-center text-muted">No goals in this category yet.</Card>}
+      {filtered.length === 0 && (
+        <Card className="text-center text-muted">Start with the life or result you want to build.</Card>
+      )}
 
       {filtered.map((g) => (
         <Card key={g.id}>
@@ -105,6 +109,8 @@ export default function Goals() {
               className="w-full mt-2 accent-[#16A34A]"
             />
           </div>
+
+          <GoalMetrics current={g.progressCurrent} target={g.progressTarget} unit={g.unit} currency={user?.currency} />
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-sm">
             <MiniTarget label="90-Day" value={g.target90d} />

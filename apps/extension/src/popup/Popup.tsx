@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sparkles, Timer, LogOut, ExternalLink, Plus } from 'lucide-react';
+import { Sparkles, Timer, LogOut, ExternalLink, Plus, RefreshCw } from 'lucide-react';
 import type { DashboardSummary, Task } from '@mecrm/types';
 import { progressPercent } from '@mecrm/shared';
 import { Card, ProgressBar } from '@mecrm/ui';
@@ -13,10 +13,27 @@ function openWebPage(path: string) {
 }
 
 export default function Popup() {
-  const { user, loading, login, logout } = useSession();
+  const { user, loading, connectionError, login, logout, refresh } = useSession();
 
   if (loading) {
     return <div className="p-6 text-sm text-muted">Loading...</div>;
+  }
+
+  if (!user && connectionError) {
+    return (
+      <div className="p-5 text-center">
+        <p className="font-bold text-ink text-sm mb-1">Can't reach the server</p>
+        <p className="text-xs text-muted mb-4">Your session is still saved. Open the full dashboard to sign in there, or try again here.</p>
+        <div className="flex gap-2">
+          <button onClick={() => refresh()} className="btn-secondary text-xs flex-1 flex items-center justify-center gap-1">
+            <RefreshCw size={12} /> Retry
+          </button>
+          <button onClick={() => openWebPage('/')} className="btn-primary text-xs flex-1">
+            Open Dashboard
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -35,17 +52,21 @@ function PopupHome({ onLogout }: { onLogout: () => void }) {
   const [captureMsg, setCaptureMsg] = useState('');
 
   function load() {
-    api.get<DashboardSummary>('/dashboard').then(setData);
-    api.get<{ tasks: Task[] }>('/tasks').then((res) => setTasks(res.tasks));
+    api.get<DashboardSummary>('/dashboard').then(setData).catch(() => {});
+    api.get<{ tasks: Task[] }>('/tasks').then((res) => setTasks(res.tasks)).catch(() => {});
   }
   useEffect(load, []);
 
   async function saveGratitude() {
     if (!gratitude.trim()) return;
-    await api.post('/checkins', { type: '1111', extra: { gratitude } });
-    setGratitude('');
-    setGratitudeSaved(true);
-    setTimeout(() => setGratitudeSaved(false), 2000);
+    try {
+      await api.post('/checkins', { type: '1111', extra: { gratitude } });
+      setGratitude('');
+      setGratitudeSaved(true);
+      setTimeout(() => setGratitudeSaved(false), 2000);
+    } catch {
+      setCaptureMsg("Couldn't save — check your connection.");
+    }
   }
 
   async function quickCapture(as: 'task' | 'lead') {

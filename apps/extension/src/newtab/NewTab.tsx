@@ -20,13 +20,31 @@ function openWebPage(path: string) {
 }
 
 export default function NewTab() {
-  const { user, loading, login } = useSession();
+  const { user, loading, connectionError, login, refresh } = useSession();
 
   return (
     <div className="min-h-screen bg-softbg flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-2xl">
-        {loading ? null : user ? <Home /> : <LoggedOut onLogin={login} />}
+        {loading ? null : !user && connectionError ? (
+          <Unreachable onRetry={refresh} />
+        ) : user ? (
+          <Home />
+        ) : (
+          <LoggedOut onLogin={login} />
+        )}
       </div>
+    </div>
+  );
+}
+
+function Unreachable({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="text-center card max-w-sm mx-auto">
+      <p className="font-bold text-ink mb-1">Can't reach the server</p>
+      <p className="text-sm text-muted mb-4">Your session is still saved. Check your connection and try again.</p>
+      <button onClick={onRetry} className="btn-primary w-full">
+        Retry
+      </button>
     </div>
   );
 }
@@ -49,7 +67,7 @@ function Home() {
   const message = MOTIVATIONAL[new Date().getDate() % MOTIVATIONAL.length];
 
   useEffect(() => {
-    api.get<DashboardSummary>('/dashboard').then(setData);
+    api.get<DashboardSummary>('/dashboard').then(setData).catch(() => {});
   }, []);
 
   useEffect(() => {

@@ -6,20 +6,30 @@ import { getToken, setToken } from '../lib/storage';
 export function useSession() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
 
   const refresh = useCallback(async () => {
     const token = await getToken();
     if (!token) {
       setUser(null);
+      setConnectionError(false);
       setLoading(false);
       return;
     }
     try {
       const res = await api.get<{ user: User }>('/auth/me');
       setUser(res.user);
-    } catch {
-      await setToken(null);
-      setUser(null);
+      setConnectionError(false);
+    } catch (err) {
+      // Only a real auth failure should sign the user out — a server that's
+      // simply unreachable (e.g. not running locally) must not wipe the session.
+      if (err instanceof ApiError && err.status === 401) {
+        await setToken(null);
+        setUser(null);
+        setConnectionError(false);
+      } else {
+        setConnectionError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -45,5 +55,5 @@ export function useSession() {
     setUser(null);
   }
 
-  return { user, loading, login, logout, refresh };
+  return { user, loading, connectionError, login, logout, refresh };
 }

@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { MoneyEntry, MoneyEntryType, MoneyGoals } from '@mecrm/types';
-import { formatCurrencyINR, progressPercent, combinationsTotal, type RevenueCombination } from '@mecrm/shared';
+import { goalGap, progressPercent, combinationsTotal, type RevenueCombination } from '@mecrm/shared';
 import { api } from '../lib/api';
+import { useCurrencyFormatter } from '../lib/currency';
 import { Card, ProgressBar, SectionTitle } from '@mecrm/ui';
 
 const ENTRY_TYPES: MoneyEntryType[] = ['revenue', 'expense', 'profit', 'savings', 'investment', 'asset', 'debt'];
 
 export default function Money() {
+  const format = useCurrencyFormatter();
   const [current, setCurrent] = useState<Record<string, number> | null>(null);
   const [goals, setGoals] = useState<MoneyGoals | null>(null);
   const [entries, setEntries] = useState<MoneyEntry[]>([]);
@@ -16,11 +18,14 @@ export default function Money() {
   const [note, setNote] = useState('');
 
   function load() {
-    api.get<{ current: Record<string, number>; goals: MoneyGoals | null }>('/money/summary').then((res) => {
-      setCurrent(res.current);
-      setGoals(res.goals);
-    });
-    api.get<{ entries: MoneyEntry[] }>('/money/entries').then((res) => setEntries(res.entries));
+    api
+      .get<{ current: Record<string, number>; goals: MoneyGoals | null }>('/money/summary')
+      .then((res) => {
+        setCurrent(res.current);
+        setGoals(res.goals);
+      })
+      .catch(() => {});
+    api.get<{ entries: MoneyEntry[] }>('/money/entries').then((res) => setEntries(res.entries)).catch(() => {});
   }
   useEffect(load, []);
 
@@ -75,7 +80,7 @@ export default function Money() {
             <div key={e.id} className="flex items-center justify-between bg-softbg rounded-xl px-3 py-2.5">
               <div>
                 <span className="text-xs font-semibold uppercase text-primary">{e.type}</span>
-                <p className="text-sm text-ink font-medium">{formatCurrencyINR(e.amount)}</p>
+                <p className="text-sm text-ink font-medium">{format(e.amount)}</p>
                 {e.note && <p className="text-xs text-muted">{e.note}</p>}
               </div>
               <button onClick={() => removeEntry(e.id)} className="text-muted hover:text-red-600">
@@ -83,7 +88,7 @@ export default function Money() {
               </button>
             </div>
           ))}
-          {entries.length === 0 && <p className="text-sm text-muted">No entries yet this month.</p>}
+          {entries.length === 0 && <p className="text-sm text-muted">Start by recording your first real transaction.</p>}
         </div>
       </Card>
 
@@ -103,19 +108,20 @@ function MoneyCard({
   target: number;
   showGap?: boolean;
 }) {
+  const format = useCurrencyFormatter();
   const percent = progressPercent(current, target);
-  const gap = Math.max(target - current, 0);
+  const gap = goalGap(current, target);
   return (
     <Card>
       <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">{label}</p>
-      <p className="text-2xl font-extrabold text-ink">{formatCurrencyINR(current)}</p>
+      <p className="text-2xl font-extrabold text-ink">{format(current)}</p>
       {target > 0 && (
         <>
-          <p className="text-xs text-muted mt-1">Target: {formatCurrencyINR(target)}</p>
+          <p className="text-xs text-muted mt-1">Target: {format(target)}</p>
           <div className="mt-3">
             <ProgressBar percent={percent} />
           </div>
-          {showGap && <p className="text-xs text-muted mt-2">Gap: {formatCurrencyINR(gap)}</p>}
+          {showGap && <p className="text-xs text-muted mt-2">Gap: {format(gap)}</p>}
         </>
       )}
     </Card>
@@ -123,6 +129,7 @@ function MoneyCard({
 }
 
 function ReverseCalculator({ goalDefault }: { goalDefault: number }) {
+  const format = useCurrencyFormatter();
   const [goal, setGoal] = useState(String(goalDefault));
   const [combos, setCombos] = useState<RevenueCombination[]>([
     { label: 'Customers', units: 100, pricePerUnit: 10000 },
@@ -146,7 +153,7 @@ function ReverseCalculator({ goalDefault }: { goalDefault: number }) {
     <Card>
       <SectionTitle>Reverse-Engineer Your Goal</SectionTitle>
       <p className="text-sm text-muted mb-3">
-        Work backwards from the number. Model how you'll actually reach {formatCurrencyINR(goalNum)}.
+        Work backwards from the number. Model how you'll actually reach {format(goalNum)}.
       </p>
       <input className="input-field mb-4" type="number" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Goal amount" />
 
@@ -179,7 +186,7 @@ function ReverseCalculator({ goalDefault }: { goalDefault: number }) {
       <div className="mt-5 bg-softbg rounded-xl p-4">
         <div className="flex justify-between mb-1">
           <span className="text-sm text-muted">Modeled total</span>
-          <span className="font-bold text-ink">{formatCurrencyINR(total)}</span>
+          <span className="font-bold text-ink">{format(total)}</span>
         </div>
         <ProgressBar percent={percent} />
         <p className="text-xs text-muted mt-2">{percent}% of your goal modeled</p>
